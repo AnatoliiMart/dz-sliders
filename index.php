@@ -94,6 +94,7 @@
       header("Location: $url");
       exit();
     }
+
     function resizeImage(string $path, string $pathToSave, int $size = 150, bool $crop = false)
     {
       extract(pathinfo($path));
@@ -123,6 +124,25 @@
 
       imagedestroy($src);
       imagedestroy($dest);
+    }
+
+    function deleteDir($dirPath)
+    {
+      if (!is_dir($dirPath)) {
+        throw new InvalidArgumentException("$dirPath must be a directory");
+      }
+      if (substr($dirPath, strlen($dirPath) - 1, 1) != '/') {
+        $dirPath .= '/';
+      }
+      $files = glob($dirPath . '*', GLOB_MARK);
+      foreach ($files as $file) {
+        if (is_dir($file)) {
+          deleteDir($file);
+        } else {
+          unlink($file);
+        }
+      }
+      rmdir($dirPath);
     }
 
     // Обработка создания нового слайдера
@@ -165,24 +185,6 @@
     if (isset($_POST['delete_slider'])) {
       $slider = $_POST['slider'];
       $path = "images/$slider";
-      function deleteDir($dirPath)
-      {
-        if (!is_dir($dirPath)) {
-          throw new InvalidArgumentException("$dirPath must be a directory");
-        }
-        if (substr($dirPath, strlen($dirPath) - 1, 1) != '/') {
-          $dirPath .= '/';
-        }
-        $files = glob($dirPath . '*', GLOB_MARK);
-        foreach ($files as $file) {
-          if (is_dir($file)) {
-            deleteDir($file);
-          } else {
-            unlink($file);
-          }
-        }
-        rmdir($dirPath);
-      }
       deleteDir($path);
       redirect('/index.php');
     }
